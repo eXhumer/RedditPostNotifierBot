@@ -46,6 +46,9 @@ class Reddit {
       const res = await axios.get(
         `https://oauth.reddit.com/r/${subreddit}/api/info`,
         {
+          headers: {
+            'Authorization': `${this.authorization.token_type} ${this.authorization.access_token}`,
+          },
           params: {
             id: postName,
             raw_json: 1,
