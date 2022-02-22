@@ -35,13 +35,13 @@ class Reddit {
 
     this.authorization = {
       ...res.data,
-      created_at: Date.now() / 1000,
+      created_at: Math.trunc(Date.now() / 1000),
     };
   }
 
   expired = () => {
     return this.authorization === null || (this.authorization.created_at +
-      this.authorization.expires_in) <= (Date.now() / 1000);
+      this.authorization.expires_in) <= Math.trunc(Date.now() / 1000);
   }
 
   latestPost = async (subreddit: string) => {
