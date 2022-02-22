@@ -1,7 +1,6 @@
 {
   "name": "reddit-post-notifier-bot",
   "version": "1.0.0",
-  "main": "bot.js",
   "author": "eXhumer <exhumer@exhumer.cc>",
   "license": "MIT",
   "dependencies": {
