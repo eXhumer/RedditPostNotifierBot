@@ -6,6 +6,8 @@ import Reddit from './reddit';
 const discord = new Client({intents: [Intents.FLAGS.GUILDS]});
 const reddit = new Reddit(process.env.REDDIT_CLIENT_ID,
                           process.env.REDDIT_CLIENT_SECRET);
+
+const postFetcherInterval = 1 * 60;
 const postCheckInterval = 15 * 60;
 const postUpvoteThreshold = 15;
 let postsToCheck: string[] = [];
@@ -100,13 +102,13 @@ discord.on("ready", async () => {
   const postGuild = await discord.guilds.fetch(process.env.POST_GUILD_ID);
   const postChannel = postGuild.channels.cache.get(process.env.POST_CHANNEL_ID);
 
-  if (postChannel && postChannel.type === "GUILD_TEXT") {
-    await redditPostChecker(postChannel);
-    setInterval(async () => await redditPostChecker(postChannel), 60 * 1000);
-  } else {
+  if (!postChannel || postChannel.type !== "GUILD_TEXT") {
     throw new Error("Discord channel specified doesn't exist or is non-text based channel " +
       "or bot doesn't have permission to view any channels!");
   }
+
+  await redditPostChecker(postChannel);
+  setInterval(async () => await redditPostChecker(postChannel), postFetcherInterval * 1000);
 });
 
 reddit.authorize()
