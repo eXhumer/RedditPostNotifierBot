@@ -16,50 +16,49 @@ const redditPostChecker = async (guildChannel: TextChannel) => {
   if (reddit.expired())
     await reddit.authorize();
 
-  while (true) {
-    while (postsToCheck.length > 0) {
-      const postName = postsToCheck.pop();
+  while (postsToCheck.length > 0) {
+    const postName = postsToCheck.pop();
 
-      if (postName && await reddit.postAvailable(postName, subreddit)) {
-        const postsListing = await reddit.postsInfo(subreddit, postName!);
+    if (postName && await reddit.postAvailable(postName, subreddit)) {
+      const postsListing = await reddit.postsInfo(subreddit, postName!);
 
-        if (postsListing.data.dist === 1) {
-          const post = postsListing.data.children[0];
+      if (postsListing.data.dist === 1) {
+        const post = postsListing.data.children[0];
 
-          if (post.data.ups >= 15) {
-            const postEmbed = new MessageEmbed()
-            .setTitle(post.data.title.length > 250 ?
-              post.data.title.substring(0, 247) + "..." :
-              post.data.title)
-            .setAuthor({
-              name: post.data.author,
-              url: `https://reddit.com/u/${post.data.author}`,
-            })
-            .setDescription(`${post.data.ups}`)
-            .setTimestamp(post.data.created * 1000)
-            .setURL(`https://reddit.com${post.data.permalink}`);
-    
-            if (post.data.thumbnail.startsWith("https://"))
-              postEmbed.setThumbnail(post.data.thumbnail);
-    
-            guildChannel.send({ embeds: [postEmbed] });
-          } else if (Math.trunc(post.data.created_utc) + postCheckInterval >
-              Math.trunc(Date.now() / 1000)) {
-            postsToCheck = [postName, ...postsToCheck];
-          } else
-            break;
+        if (post.data.ups >= 15) {
+          const postEmbed = new MessageEmbed()
+          .setTitle(post.data.title.length > 250 ?
+            post.data.title.substring(0, 247) + "..." :
+            post.data.title)
+          .setAuthor({
+            name: post.data.author,
+            url: `https://reddit.com/u/${post.data.author}`,
+          })
+          .setDescription(`${post.data.ups}`)
+          .setTimestamp(post.data.created * 1000)
+          .setURL(`https://reddit.com${post.data.permalink}`);
+  
+          if (post.data.thumbnail.startsWith("https://"))
+            postEmbed.setThumbnail(post.data.thumbnail);
+  
+          guildChannel.send({ embeds: [postEmbed] });
+        } else if (Math.trunc(post.data.created_utc) + postCheckInterval >
+            Math.trunc(Date.now() / 1000)) {
+          postsToCheck = [postName, ...postsToCheck];
         }
       }
     }
+  }
 
-    while (postsHistory.length > 0 &&
-      !reddit.postAvailable(postsHistory[postsHistory.length - 1], subreddit)) {
-      postsHistory.pop();
-    }
+  while (postsHistory.length > 0 &&
+    !reddit.postAvailable(postsHistory[postsHistory.length - 1], subreddit)) {
+    postsHistory.pop();
+  }
 
-    if (postsHistory.length === 0)
-      postsHistory.push((await reddit.latestPost(subreddit)).data.name);
+  if (postsHistory.length === 0)
+    postsHistory.push((await reddit.latestPost(subreddit)).data.name);
 
+  while (true) {
     const postsListing = await reddit.posts(
       subreddit,
       "new",
@@ -70,9 +69,7 @@ const redditPostChecker = async (guildChannel: TextChannel) => {
     if (postsListing.data.dist === 0)
       break;
 
-    const posts = postsListing.data.children.reverse();
-
-    posts.forEach((post: any) => {
+    postsListing.data.children.reverse().forEach((post: any) => {
       postsHistory.push(post.data.name);
 
       if (post.data.ups >= postUpvoteThreshold) {
