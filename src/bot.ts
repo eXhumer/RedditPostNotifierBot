@@ -21,12 +21,6 @@ const redditPostChecker = async (guildChannel: TextChannel) => {
   if (postsToCheck.length > 0) {
     const postsListing = await reddit.postsInfo(subreddit, ...postsToCheck);
 
-    postsToCheck = postsToCheck.filter(
-      postName => postName in postsListing.data.children.map(
-        (post: any) => post.data.name
-      )
-    );
-
     postsListing.data.children.forEach((post: any) => {
       if (post.data.ups >= postUpvoteThreshold) {
         const postEmbed = new MessageEmbed()
@@ -44,6 +38,7 @@ const redditPostChecker = async (guildChannel: TextChannel) => {
           postEmbed.setThumbnail(post.data.thumbnail);
 
         guildChannel.send({ embeds: [postEmbed] });
+        postsToCheck = postsToCheck.filter(postName => postName !== post.data.name);
       } else if (Math.trunc(post.data.created_utc) + postCheckInterval <=
           Math.trunc(Date.now() / 1000)) {
         postsToCheck = postsToCheck.filter(postName => postName !== post.data.name);
